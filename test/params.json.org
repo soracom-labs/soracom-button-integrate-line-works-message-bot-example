@@ -1,0 +1,10 @@
+{
+    "Parameters": {
+        "API_ID": "CHANGEME",
+        "CONSUMER_KEY": "CHANGEME",
+        "BOT_NO": "CHANGEME",
+        "SERVER_ID": "CHANGEME",
+        "ROOM_ID": "CHANGEME",
+        "SERVER_TOKEN_SECRET_ARN": "CHANGEME"
+    }
+}
