@@ -14,7 +14,7 @@ Messages to LINE Works are sent from SORACOM Funk and AWS Lambda to any talk gro
  * `yarn run cdk deploy`: deploy this stack to your default AWS account/region
  * `yarn run cdk diff`: compare deployed stack with current state
  * `ya:rn run cdk synth`: emits the synthesized CloudFormation template
- * `:sam-beta-cdk local invoke -e test/funk.json -n test/params.json --project-type CDK`: local invoke lambda function on docker container
+ * `sam-beta-cdk local invoke -e test/funk.json -n test/params.json --project-type CDK`: local invoke lambda function on docker container
 
  ## Enviroment Variables
 
