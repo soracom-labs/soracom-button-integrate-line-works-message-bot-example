@@ -30,7 +30,7 @@ export class SoracomButtonIntegrateLineWorksMessageBotExampleStack extends cdk.S
       ),
     );
 
-    new lambda.NodejsFunction(this, 'message-bot', {
+    const lambdaFunction = new lambda.NodejsFunction(this, 'message-bot', {
       role: lambdaRole,
       environment: {
         'API_ID': API_ID,
@@ -41,6 +41,7 @@ export class SoracomButtonIntegrateLineWorksMessageBotExampleStack extends cdk.S
         'SERVER_TOKEN_SECRET_ARN': SERVER_TOKEN_SECRET_ARN,
       }
     });
+    new cdk.CfnOutput(this, `lambda-function-arn`, { value: lambdaFunction.functionArn });
 
     const funkRole = new iam.Role(this, 'message-bot-soracom-funk-role', {
       roleName: 'message-bot-soracom-funk-role',

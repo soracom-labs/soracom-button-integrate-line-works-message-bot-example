@@ -11,6 +11,7 @@ Messages to LINE Works are sent from SORACOM Funk and AWS Lambda to any talk gro
 
 ## Useful commands
 
+ * `yarn install`: pre-install required packages
  * `yarn run cdk deploy`: deploy this stack to your default AWS account/region
  * `yarn run cdk diff`: compare deployed stack with current state
  * `ya:rn run cdk synth`: emits the synthesized CloudFormation template
@@ -26,6 +27,27 @@ Messages to LINE Works are sent from SORACOM Funk and AWS Lambda to any talk gro
 * `EXTERNAL_ID`: External ID when IAM Role of SORACOM Funk Assume Role to permission to Invoke AWS Lambda
 * `SORACOM_ACCOUNT_PRINCIPAL`: IAM Role principal of SORACOM Funk, default:762707677580(Japan coverage)
 * `SERVER_TOKEN_SECRET_ARN`: AWS Systems Manager Parameter ARN of LINE Works Server authentication key
+
+## Getting started
+
+```console
+$ yarn install
+$ SECRET=$(cat ~/Downloads/private_xxxxxxxxxxxxxx.key)
+$ aws ssm put-parameter --name "line-works-server-token-secret" --type "SecureString" --value "$SECRET"
+$ SECRET_ARN=$(aws ssm get-parameter --name "line-works-server-token-secret" --query 'Parameter.ARN' --output text)
+$ API_ID='xxxxxx' CONSUMER_KEY='xxxxxx' BOT_NO='xxxxxx' \
+SERVER_ID='xxxxxx' ROOM_ID='xxxxxx' EXTERNAL_ID='xxxxxx' \
+SERVER_TOKEN_SECRET_ARN=$SECRET_ARN \
+yarn run cdk deploy --require-approval never
+```
+
+## AWS Lambda local test
+
+```
+$ cp test/params.json.org test/params.json
+$ vim params.json
+$ sam-beta-cdk local invoke -e test/funk.json -n test/params.json --project-type CDK
+```
 
 ## Document
 See also: [IoT Recipe URL](https://)
