@@ -48,7 +48,7 @@ yarn run cdk deploy --require-approval never
 
 ```
 $ cp test/params.json.org test/params.json
-$ vim params.json
+$ vim test/params.json
 $ sam-beta-cdk local invoke -e test/funk.json -n test/params.json --project-type CDK
 ```
 
