@@ -1,4 +1,4 @@
-[![test](https://github.com/2matzzz/soracom-button-integrate-line-works-message-bot-example/workflows/test/badge.svg)](https://github.com/2matzzz/soracom-button-integrate-line-works-message-bot-example/actions/workflows/test.yml)
+[![test](https://github.com/soracom-labs/soracom-button-integrate-line-works-message-bot-example/workflows/test/badge.svg)](https://github.com/soracom-labs/soracom-button-integrate-line-works-message-bot-example/actions/workflows/test.yml)
 
 # LINE Works Bot for SORACOM LTE-M Button
 
