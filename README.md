@@ -23,24 +23,34 @@ Messages to LINE Works are sent from SORACOM Funk and AWS Lambda to any talk gro
 ## Enviroment Variables
 
 - `API_ID`: LINE Works API ID
-- `CONSUMER_KEY`: LINE Works API Consumer Key
+- `CONSUMER_KEY`: LINE Works API v1.0 Consumer Key
 - `BOT_NO`: LINE Works Bot No
-- `SERVER_ID`: LINE Works Server ID
+- `SERVER_ID`: LINE Works API v1.0 Server ID
 - `ROOM_ID`: Talk room ID of the message destination
 - `EXTERNAL_ID`: External ID when IAM Role of SORACOM Funk Assume Role to permission to Invoke AWS Lambda
 - `SORACOM_ACCOUNT_PRINCIPAL`: IAM Role principal of SORACOM Funk, default:762707677580(Japan coverage)
 - `SERVER_TOKEN_SECRET_ARN`: AWS Systems Manager Parameter ARN of LINE Works Server authentication key
+- `APP_CLIENT_ID`
+- `APP_CLIENT_SECRET_ARN`
+- `SERVICE_ACCOUNT_ID`
+- `CHANNEL_ID`
+- `PRIVATE_KEY_ARN`
 
 ## Getting started
 
 ```console
 $ yarn install
-$ SECRET=$(cat ~/Downloads/private_xxxxxxxxxxxxxx.key)
-$ aws ssm put-parameter --name "line-works-server-token-secret" --type "SecureString" --value "$SECRET"
+$ aws ssm put-parameter --name "line-works-server-token-secret" --type "SecureString" --value "$(cat ~/Downloads/private_xxxxxxxxxxxxxx.key)"
+$ aws ssm put-parameter --name "line-works-app-client-secret" --type "SecureString" --value "$(cat ~/Downloads/private_xxxxxxxxxxxxxx.key)"
+$ aws ssm put-parameter --name "line-works-app-private-key" --type "SecureString" --value "xxxxxx"
 $ SECRET_ARN=$(aws ssm get-parameter --name "line-works-server-token-secret" --query 'Parameter.ARN' --output text)
+$ APP_CLIENT_SECRET_ARN=$(aws ssm get-parameter --name "line-works-app-client-secret" --query 'Parameter.ARN' --output text)
+$ PRIVATE_KEY_ARN=$(aws ssm get-parameter --name "line-works-app-private-key" --query 'Parameter.ARN' --output text)
 $ API_ID='xxxxxx' CONSUMER_KEY='xxxxxx' BOT_NO='xxxxxx' \
 SERVER_ID='xxxxxx' ROOM_ID='xxxxxx' EXTERNAL_ID='xxxxxx' \
-SERVER_TOKEN_SECRET_ARN=$SECRET_ARN \
+SERVER_TOKEN_SECRET_ARN=$SECRET_ARN APP_CLIENT_ID='xxxxxx' \
+APP_CLIENT_SECRET_ARN=$APP_CLIENT_SECRET_ARN SERVICE_ACCOUNT_ID='xxxxxx' \
+CHANNEL_ID='xxxxxx' PRIVATE_KEY_ARN=$PRIVATE_KEY_ARN \
 yarn run cdk deploy --require-approval never
 ```
 
@@ -54,4 +64,4 @@ $ sam-beta-cdk local invoke -e test/funk.json -n test/params.json --project-type
 
 ## Document
 
-See also: [IoT Recipe URL](https://)
+See also: [IoT Recipe URL](https://soracom.jp/recipes_index/14133/)
