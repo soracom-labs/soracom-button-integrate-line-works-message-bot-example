@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
+import cdk = require("aws-cdk-lib")
 import { SoracomButtonIntegrateLineWorksMessageBotExampleStack } from '../lib/soracom-button-integrate-line-works-message-bot-example-stack';
 
 const app = new cdk.App();

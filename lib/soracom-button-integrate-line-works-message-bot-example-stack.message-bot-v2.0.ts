@@ -1,18 +1,10 @@
-import { Context, Callback } from 'aws-lambda';
-import * as AWS from 'aws-sdk';
+import { Context } from 'aws-lambda';
+import { SSM } from "@aws-sdk/client-ssm";
 import * as jwt from 'jsonwebtoken';
-import * as querystring from 'querystring';
 import axios from 'axios';
 import applyCaseMiddleware from 'axios-case-converter';
+import urlJoin from 'url-join';
 
-interface MessageToRoomID {
-    roomID: string,
-    content: TextMessageContent | ButtonTextMessageContent,
-}
-interface TextMessageContent {
-    type: string,
-    text: string,
-}
 interface ButtonTextMessageContent {
     type: string,
     contentText: string,
@@ -25,6 +17,7 @@ interface ActionObject {
     text: string,
     postback?: string,
 }
+
 interface Event {
     clickType: string,
     clickTypeName: string,
@@ -48,8 +41,9 @@ interface FunkClientContext {
     custom?: FunkClientContext,
 }
 
-interface AuthRequest {
+interface lineWorksTokenIssuePayload {
     iss: string,
+    sub: string,
     iat: number,
     exp: number,
 }
@@ -62,20 +56,19 @@ const API_SCOPE = 'bot';
 async function getSSMParam(arn: string) {
     // arn:aws:ssm:{region}:{account_id}:parameter/{parameter_name}
     const ssmParamName = arn.split('/').slice(-1).pop();
-    console.log(ssmParamName);
     if (ssmParamName) {
-        const ssm = new AWS.SSM();
+        const ssm = new SSM({});
         const response = await ssm.getParameter({
             Name: ssmParamName,
             WithDecryption: true,
-        }).promise();
+        });
         return (response.Parameter?.Value) ? (response.Parameter.Value) : ('');
     }
     return '';
 }
 
 exports.handler = async function (event: Event, context: FunkContext) {
-    const botNo = process.env.BOT_NO || '';
+    const botNo = process.env.BOT_NO_V2 || '';
     const appClientID = process.env.APP_CLIENT_ID || '';
     const appClientSecretARN = process.env.APP_CLIENT_SECRET_ARN || '';
     const serviceAccountID = process.env.SERVICE_ACCOUNT_ID || '';
@@ -83,9 +76,10 @@ exports.handler = async function (event: Event, context: FunkContext) {
     const privateKeyARN = process.env.PRIVATE_KEY_ARN || '';
 
     const imsi = (context.clientContext?.imsi) ? (context.clientContext.imsi) : ('IMSI does not found');
+    const clickTypeName = (event.clickTypeName) || ('ClickTypeName does not found');
     const buttonTextMessageContent: ButtonTextMessageContent = {
         type: 'button_template',
-        contentText: 'SORACOM LTE-M Button clicked: ' + imsi + ' (' + event.clickTypeName + ')',
+        contentText: 'SORACOM LTE-M Button clicked: ' + imsi + ' (' + clickTypeName + ')',
         actions: [
             {
                 type: 'message',
@@ -96,7 +90,8 @@ exports.handler = async function (event: Event, context: FunkContext) {
     }
 
     //Issue token
-    const payload = {
+
+    const payload: lineWorksTokenIssuePayload = {
         iss: appClientID,
         sub: serviceAccountID,
         iat: Math.floor(Date.now() / 1000),
@@ -107,34 +102,40 @@ exports.handler = async function (event: Event, context: FunkContext) {
     const appClientSecret = await getSSMParam(appClientSecretARN);
 
     const authClient = applyCaseMiddleware(axios.create());
-    const res = await authClient.post(
-        AUTH_URL + '/oauth2/v2.0/token',
-        querystring.stringify({
+    const querystring = new URLSearchParams(
+        {
             grant_type: API_GRANT_TYPE,
             assertion: token,
             client_secret: appClientSecret,
             client_id: appClientID,
             scope: API_SCOPE,
-        })).catch((error) => {
-            console.error('Auth error: ' + JSON.stringify(error))
-            return Promise.reject();
-        });
+        }
+    )
+    const authURL = urlJoin(AUTH_URL, '/oauth2/v2.0/token')
+    const authRes = await authClient.post(
+        authURL,
+        querystring
+    ).catch((error) => {
+        console.error('Auth error: ' + JSON.stringify(error))
+        return Promise.reject();
+    });
 
     // Send message
     const message = {
         content: buttonTextMessageContent,
     }
-    await axios.post(
-        API_URL + '/v1.0/bots/' + botNo + '/channels/' + channelID + '/messages',
+    const messageURL = urlJoin(API_URL, '/v1.0/bots/', botNo, '/channels/', channelID, '/messages');
+    const messageClient = axios.create();
+    await messageClient.post(
+        messageURL,
         message,
         {
             headers: {
-                'Authorization': 'Bearer ' + res.data.access_token,
+                'Authorization': 'Bearer ' + authRes.data.accessToken
             }
         }
     ).catch((error) => {
         console.error('Send message error: ' + JSON.stringify(error))
         return Promise.reject();
     });
-
 };
