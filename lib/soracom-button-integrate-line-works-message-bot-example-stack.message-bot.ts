@@ -1,8 +1,9 @@
 import { Context, Callback } from 'aws-lambda';
-import * as AWS from 'aws-sdk';
+import { SSM } from "@aws-sdk/client-ssm";
 import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 import applyCaseMiddleware from 'axios-case-converter';
+import urlJoin from 'url-join';
 
 interface MessageToRoomID {
     roomID: string,
@@ -60,11 +61,11 @@ async function getSSMParam(arn: string) {
     const ssmParamName = arn.split('/').slice(-1).pop();
     console.log(ssmParamName);
     if (ssmParamName) {
-        const ssm = new AWS.SSM();
+        const ssm = new SSM({});
         const response = await ssm.getParameter({
             Name: ssmParamName,
             WithDecryption: true,
-        }).promise();
+        });
         return (response.Parameter?.Value) ? (response.Parameter.Value) : ('');
     }
     return '';
@@ -79,8 +80,6 @@ exports.handler = async function (event: Event, context: FunkContext, callback: 
     const serverTokenSecretARN = process.env.SERVER_TOKEN_SECRET_ARN || '';
 
     // Issue token
-    const querystring = require('querystring');
-
     const privateKey = await getSSMParam(serverTokenSecretARN);
     const issueTime = Math.floor(Date.now() / 1000);
     const authPayload: AuthRequest = {
@@ -90,15 +89,20 @@ exports.handler = async function (event: Event, context: FunkContext, callback: 
     }
     const token = jwt.sign(authPayload, Buffer.from(privateKey), { algorithm: 'RS256' });
     const authClient = applyCaseMiddleware(axios.create());
-    const res = await authClient.post(
-        AUTH_URL + '/b/' + apiID + '/server/token',
-        querystring.stringify({
+    const querystring = new URLSearchParams(
+        {
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             assertion: token,
-        })).catch((error) => {
-            console.error('Auth error: ' + JSON.stringify(error))
-            return Promise.reject();
-        });
+        }
+    );
+    const authURL = urlJoin(AUTH_URL, '/b/', apiID, '/server/token')
+    const res = await authClient.post(
+        authURL,
+        querystring
+    ).catch((error) => {
+        console.error('Auth error: ' + JSON.stringify(error))
+        return Promise.reject();
+    });
 
     // Send message
     // `sam local invoke` will send 'IMSI does not found' to LINE Works because AWS SAM does not
@@ -121,8 +125,9 @@ exports.handler = async function (event: Event, context: FunkContext, callback: 
         roomID: roomID,
         content: buttonTextMessageContent,
     }
+    const messageURL = urlJoin(API_URL, '/r/', apiID, '/message/v1/bot/', botNo, '/message/push')
     await axios.post(
-        API_URL + '/r/' + apiID + '/message/v1/bot/' + botNo + '/message/push',
+        messageURL,
         message,
         {
             headers: {

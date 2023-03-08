@@ -1,0 +1,10 @@
+{
+    "Parameters": {
+        "BOT_NO_V2": "CHANGEME",
+        "APP_CLIENT_ID": "CHANGEME",
+        "APP_CLIENT_SECRET_ARN": "CHANGEME",
+        "SERVICE_ACCOUNT_ID": "CHANGEME",
+        "CHANNEL_ID": "CHANGEME",
+        "PRIVATE_KEY_ARN": "CHANGEME"
+    }
+}

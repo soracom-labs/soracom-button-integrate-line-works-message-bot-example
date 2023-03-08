@@ -1,5 +1,5 @@
 import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
-import * as cdk from '@aws-cdk/core';
+import cdk = require("aws-cdk-lib")
 import * as SoracomButtonIntegrateLineWorksMessageBotExample from '../lib/soracom-button-integrate-line-works-message-bot-example-stack';
 
 test('Empty Stack', () => {
